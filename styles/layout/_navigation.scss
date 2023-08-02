@@ -1,0 +1,52 @@
+.navigation {
+    @extend %cover;
+
+    position: fixed;
+    pointer-events: none;
+    color: $color-quater-spanish-white;
+    z-index: z("navigation");
+}
+
+.navigation__link {
+    font-size: 0;
+    height: 2rem;
+    position: absolute;
+    pointer-events: auto;
+    padding-bottom: 0.2rem;
+    left: 4rem;
+    top: 4rem;
+    transition: opacity 0.4s ease;
+    width: 12.8rem;
+
+    &:hover {
+        opacity: 0.5;
+    }
+
+    @include media("<phone") {
+        left: 5rem;
+        top: 5rem;
+        width: 28rem;
+        height: 4.3rem;
+    }
+}
+
+.navigation__link__icon {
+    display: block;
+}
+
+.navigation__list {}
+
+.navigation__list__item {
+    position: absolute;
+    right: 4rem;
+    pointer-events: auto;
+    top: 4rem;
+}
+
+.navigation__list__link {
+    @extend %title-20;
+    @extend %link--hidden;
+
+    display: block;
+    line-height: 1;
+}

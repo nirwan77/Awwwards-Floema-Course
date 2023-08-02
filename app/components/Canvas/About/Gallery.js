@@ -1,0 +1,148 @@
+import { map, } from "lodash"
+import GSAP from "gsap"
+
+import Media from "./Media"
+import { Transform } from "ogl"
+
+export default class Gallery {
+    constructor({element,gl,geometry,index,scene,sizes}) {
+        this.element = element
+        this.elementWrapper = element.querySelector(".about__gallery__wrapper")
+        
+        this.gl = gl
+        this.geometry = geometry
+        this.index = index
+        this.scene = scene
+        this.sizes = sizes
+
+        this.group = new Transform()
+
+        this.scroll = {
+            current: 0,
+            target: 0, 
+            start: 0,
+            last: 0,
+            velocity: 1
+        }
+
+        this.createMedias()
+
+        this.group.setParent(this.scene)
+    }
+
+    createMedias () {
+        this.mediasElements = this.element.querySelectorAll(".about__gallery__media")
+
+        this.medias = map(this.mediasElements, (element, index) => {
+            return new Media({
+                gl:this.gl,
+                element,
+                geometry:this.geometry,
+                index,
+                scene: this.group,
+                sizes: this.sizes
+            })
+        })
+    }
+
+    /**
+     * Animations 
+     */
+
+    show () {
+        map(this.medias, media => media.show())
+    }
+
+    hide () {
+        map(this.medias, media => media.hide())
+    }
+
+    /**
+     * events 
+     */
+    onResize(event) {
+        this.bounds = this.elementWrapper.getBoundingClientRect()
+        
+        this.sizes = event.sizes
+        
+        this.width = (this.bounds.width / window.innerWidth) * this.sizes.width
+      
+        this.scroll.current = this.scroll.target = 0
+
+        map(this.medias, media => media.onResize(event, this.scroll.current))
+    }
+
+    onTouchDown ({ x,y }) {
+        this.scroll.start = this.scroll.current
+    }
+
+    onTouchMove ({ x,y }) {
+        const distance = x.start - x.end
+        
+        this.scroll.target = this.scroll.start - distance
+    }
+
+    onTouchUp ({ x,y }) {
+        
+    }
+
+    /***
+     * Update
+     */
+
+    update(scroll){
+        if (!this.bounds) return 
+
+        const y = scroll.current / window.innerHeight
+
+        const distance = (scroll.current - scroll.target) * 0.1
+        
+        if(this.scroll.current < this.scroll.target){
+            this.direction = "right"
+            this.scroll.velocity = -0.7
+        }else if (this.scroll.current > this.scroll.target){
+            this.direction = "left"
+            this.scroll.velocity = 0.7
+        }
+
+        this.scroll.target -= this.scroll.velocity 
+        this.scroll.target += distance
+
+        this.scroll.current = GSAP.utils.interpolate( this.scroll.current, this.scroll.target, 0.1 ); // prettier-ignore
+
+        map(this.medias, (media, index) => { 
+            const scaleX = media.mesh.scale.x / 2 + 0.25
+
+            if (this.direction === "left"){
+                const x= media.mesh.position.x + scaleX
+                
+                if (x < -this.sizes.width/2){
+                    media.extra += this.width
+                }
+
+
+            } else if (this.direction === "right"){
+                const x= media.mesh.position.x - scaleX 
+                
+                
+                if (x > this.sizes.width/2){
+                    media.extra-= this.width
+                }
+            }
+
+            media.update(this.scroll.current)
+
+            // media.mesh.position.y = Math.cos((media.mesh.position.x / this.width) * Math.PI) * 1 -1 
+        })
+
+        this.group.position.y = y * this.sizes.height
+    }
+
+    /***
+     * Destroy
+     */
+
+    destroy () {
+        this.scene.removeChild(this.group)
+    }
+}

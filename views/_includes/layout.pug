@@ -1,0 +1,17 @@
+block variables
+doctype html
+html
+  head
+    include head
+  body(class= isDesktop ? "desktop" : isTablet ? "tablet" : isPhone ? "phone" : "" lang="en")
+    include preloader
+    include navigation
+
+    #content.content(data-template=template)
+      block content
+
+    script. 
+      window.ASSETS= !{JSON.stringify(assets).replace(/<\//g, "<\\/")}
+
+
+    include scripts
