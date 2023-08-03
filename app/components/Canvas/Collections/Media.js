@@ -1,7 +1,7 @@
 import { Mesh, Program, Texture } from "ogl"
 import GSAP from "gsap"
-import fragment from "Shaders/plane-fragment.glsl"
-import vertex from "Shaders/plane-vertex.glsl"
+import fragment from "Shaders/collections-fragment.glsl"
+import vertex from "Shaders/collections-vertex.glsl"
 
 export default class{
     constructor ({element, gl, geometry,index, scene, sizes}){
@@ -12,14 +12,25 @@ export default class{
         this.index = index
         this.sizes = sizes
 
-        this.createTexture()
-        this.createProgram()
-        this.createMesh()
-
         this.extra = {
             x: 0,
             y: 0,
-          };
+        };
+
+        this.opacity = {
+            current: 0,
+            target: 0,
+            lerp: 0.1,
+            multiplier: 0,
+        }
+        
+        this.createTexture()
+        this.createProgram()
+        this.createMesh()
+        this.createBounds({
+            sizes:this.sizes
+        })
+
     }
 
     createTexture () {
@@ -62,16 +73,16 @@ export default class{
      * Animation
      */
     show () {
-        GSAP.fromTo(this.program.uniforms.uAlpha,{
-            value:0
+        GSAP.fromTo(this.opacity,{
+            multiplier:0
         },{
-            value:1
+            multiplier:1
         })
     }
 
     hide () {
-        GSAP.to(this.program.uniforms.uAlpha,{
-            value:0
+        GSAP.to(this.opacity,{
+            multiplier:0
         })
     }
 
@@ -114,11 +125,24 @@ export default class{
         this.mesh.position.y = (this.sizes.height / 2) - (this.mesh.scale.y / 2) - (this.y  * this.sizes.height) + this.extra.y; // prettier-ignore
       }
 
-    update (scroll) {
-        if (!this.bounds) return
+    update (scroll, index) {
         this.updateX(scroll)
         this.updateY()
-    }
 
+        const amplitude = 0.1;
+        const frequency = 1;
     
+        this.mesh.rotation.z = -0.02 * Math.PI * Math.sin(this.index / frequency);
+        this.mesh.position.y = amplitude * Math.sin(this.index / frequency);
+    
+        this.opacity.target = index === this.index ? 1 : 0.4;
+        this.opacity.current = GSAP.utils.interpolate(
+          this.opacity.current,
+          this.opacity.target,
+          this.opacity.lerp
+        );
+    
+        this.program.uniforms.uAlpha.value = this.opacity.multiplier;
+        this.program.uniforms.uAlpha.value = this.opacity.multiplier * this.opacity.current;     
+    }
 }

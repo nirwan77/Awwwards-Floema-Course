@@ -25,6 +25,10 @@ export default class Gallery {
             velocity: 1
         }
 
+        this.onResize({
+            sizes: this.sizes
+        })
+
         this.createMedias()
 
         this.group.setParent(this.scene)
@@ -91,8 +95,6 @@ export default class Gallery {
      */
 
     update(scroll){
-        if (!this.bounds) return 
-
         const y = scroll.current / window.innerHeight
 
         const distance = (scroll.current - scroll.target) * 0.1

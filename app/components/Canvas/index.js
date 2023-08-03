@@ -1,8 +1,10 @@
 import { Renderer, Camera, Transform } from 'ogl';
+import GSAP from "gsap"
 
 import About from './About';
 import Home from "./Home"
 import Collections from "./Collections"
+import Detail from './Detail';
 
 import Transition from "./Transition"
 
@@ -97,7 +99,8 @@ export default class Canvas {
         this.collections = new Collections({
             gl: this.gl,
             scene: this.scene,
-            sizes: this.sizes
+            sizes: this.sizes,
+            transition: this.transition
         })
     }
 
@@ -106,6 +109,24 @@ export default class Canvas {
 
         this.collections.destroy()
         this.collections = null
+    }
+
+    //   Detail
+
+    createDetail() {
+        this.detail = new Detail({
+        gl: this.gl,
+        scene: this.scene,
+        sizes: this.sizes,
+        transition: this.transition,
+        });
+    }
+
+    destroyDetail() {
+        if (!this.detail) return;
+
+        this.detail.destroy();
+        this.detail = null;
     }
 
     
@@ -129,6 +150,10 @@ export default class Canvas {
             this.home.hide()
         }
 
+        if (this.detail) {
+            this.detail.hide();
+          }
+
         
         this.isFromCollectionsToDetail = this.template === "collections" && url.indexOf("detail") > -1
         this.isFromDetailToCollections = this.template === "detail" && url.indexOf("collections") > -1
@@ -136,10 +161,13 @@ export default class Canvas {
         if (this.isFromCollectionsToDetail || this.isFromDetailToCollections){
             this.transition = new Transition({
                 collections: this.collections,
+                gl: this.gl,
                 scene: this.scene,
                 sizes: this.sizes,
                 url
             })
+            this.transition.setElement(this.collections || this.detail)
+
         }
     }
 
@@ -161,6 +189,16 @@ export default class Canvas {
         } else if (this.collections) {
             this.destroyCollections()
         }
+
+        if (template === 'detail') {
+            this.createDetail();
+
+            
+          } else if (this.detail) {
+            this.destroyDetail();
+          }
+
+        this.template = template
     }
 
     onResize () {
@@ -191,6 +229,10 @@ export default class Canvas {
             this.collections.onResize(values)
         }
 
+        if (this.detail) {
+            this.detail.onResize(values);
+          }
+
         if (this.home){
             this.home.onResize(values)
         }
@@ -214,6 +256,10 @@ export default class Canvas {
         if(this.collections){
             this.collections.onTouchDown(values)
         }
+
+        if (this.detail) {
+            this.detail.onTouchDown(values);
+          }
 
         if(this.home){
             this.home.onTouchDown(values)
@@ -243,6 +289,11 @@ export default class Canvas {
             this.collections.onTouchMove(values)
         }
 
+        if (this.detail) {
+            this.detail.onTouchMove(values);
+          }
+      
+
         if(this.home){
             this.home.onTouchMove(values)
         }
@@ -269,6 +320,10 @@ export default class Canvas {
         if(this.collections){
             this.collections.onTouchUp(values)
         }
+
+        if (this.detail) {
+            this.detail.onTouchUp(values);
+          }
 
         if(this.home){
             this.home.onTouchUp(values)
@@ -301,10 +356,13 @@ export default class Canvas {
             this.home.update()
         }
 
+        if (this.detail) {
+            this.detail.update();
+          }
+
         this.renderer.render({
             camera: this.camera,
             scene: this.scene
         })
     }
 }
-

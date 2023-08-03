@@ -15,6 +15,10 @@ export default class {
         this.createGeometry()
         this.createGallaries()
 
+        this.onResize({
+            sizes: this.sizes
+        })
+
         this.group.setParent(scene)
     }
 

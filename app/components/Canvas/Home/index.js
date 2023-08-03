@@ -44,6 +44,9 @@ export default class {
 
         this.createGeometry()
         this.createGallery()
+        this.onResize({
+            sizes: this.sizes
+        })
 
         this.group.setParent(this.scene)
 
@@ -132,8 +135,6 @@ export default class {
      */
 
     update(){
-        if (!this.galleryBounds) return 
-
         this.speed.current = GSAP.utils.interpolate( this.speed.current, this.speed.target, this.speed.lerp ); // prettier-ignore
 
         this.x.current = GSAP.utils.interpolate( this.x.current, this.x.target, 0.1 ); // prettier-ignore
